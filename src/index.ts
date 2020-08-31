@@ -6,6 +6,12 @@ const app = express();
 
 app.use(express.json());
 
+app.get('/players', (req, res) => {
+  const players: Player[] = getPlayers();
+
+  res.status(200).json({ players });
+});
+
 app.post('/', (req, res) => {
   const { action }: { action: unknown } = req.body;
 
@@ -25,6 +31,33 @@ app.post('/', (req, res) => {
 });
 
 app.listen(env.get('PORT'));
+
+type Player = {
+  name: string;
+};
+
+function getPlayers(): Player[] {
+  // Result is of the form:
+  // There are 1 of a max of 20 players online: [comma-separated list of names]
+  const result = interact('list');
+
+  const splitResult = result.split(':');
+
+  if (splitResult.length < 2) {
+    return [];
+  }
+
+  const names = splitResult[1];
+
+  const players = names
+    .trim()
+    .split(',')
+    .map((name) => ({
+      name: name.trim(),
+    }));
+
+  return players;
+}
 
 const PERMITTED_ACTIONS = ['start', 'stop', 'reboot'] as const;
 
@@ -52,20 +85,36 @@ function takeAction(action: PermittedAction): void {
   actionHandlers[action]();
 }
 
+function interact(command: string): string {
+  const buffer = execSync(
+    `docker exec mc rcon-cli --password ${env.get(
+      'RCON_PASSWORD',
+    )} '${command}'`,
+  );
+
+  return buffer.toString();
+}
+
+function say(text: string): void {
+  interact(`/say ${text}`);
+}
+
 function handleStart() {
   execSync('docker start mc');
 }
 
 function handleStop() {
-  execSync(
-    `docker exec mc rcon-cli --password ${env.get(
-      'RCON_PASSWORD',
-    )} '/say The server is shutting down in 1 minute.'`,
-  );
-  execSync('sleep 60');
+  say('The server is shutting down in 1 minute.');
+  execSync('sleep 30');
+  say('The server is shutting down in 30 seconds.');
+  execSync('sleep 30');
   execSync('docker stop mc');
 }
 
 function handleReboot() {
+  say('The server is restarting in 1 minute.');
+  execSync('sleep 30');
+  say('The server is restarting in 30 seconds.');
+  execSync('sleep 30');
   execSync('docker restart mc');
 }
