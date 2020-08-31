@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-const ENV_VARS = ['PORT'] as const;
+const ENV_VARS = ['PORT', 'RCON_PASSWORD'] as const;
 
 export function assertEnvironment(): void {
   for (const name of ENV_VARS) {

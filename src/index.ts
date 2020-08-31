@@ -57,6 +57,12 @@ function handleStart() {
 }
 
 function handleStop() {
+  execSync(
+    `docker exec mc rcon-cli --password ${env.get(
+      'RCON_PASSWORD',
+    )} '/say The server is shutting down in 1 minute.'`,
+  );
+  execSync('sleep 60');
   execSync('docker stop mc');
 }
 
