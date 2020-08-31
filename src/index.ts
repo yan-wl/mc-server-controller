@@ -41,20 +41,15 @@ function getPlayers(): Player[] {
   // There are 1 of a max of 20 players online: [comma-separated list of names]
   const result = interact('list');
 
-  const splitResult = result.split(':');
+  const names = result.split(':')[1].trim();
 
-  if (splitResult.length < 2) {
+  if (names === '') {
     return [];
   }
 
-  const names = splitResult[1];
-
-  const players = names
-    .trim()
-    .split(',')
-    .map((name) => ({
-      name: name.trim(),
-    }));
+  const players = names.split(',').map((name) => ({
+    name: name.trim(),
+  }));
 
   return players;
 }
