@@ -7,7 +7,13 @@ const app = express();
 app.use(express.json());
 
 app.get('/players', (req, res) => {
-  const players: Player[] = getPlayers();
+  let players: Player[];
+  try {
+    players = getPlayers();
+  } catch (error) {
+    res.status(500).send();
+    return;
+  }
 
   res.status(200).json({ players });
 });
